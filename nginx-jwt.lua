@@ -122,4 +122,12 @@ function M.table_contains(table, item)
     return false
 end
 
+function M.get_claim(claim)
+    local auth_header = ngx.var.http_Authorization
+    local _, _, token = string.find(auth_header, "Bearer%s+(.+)")
+    local jwt_obj = jwt:verify(secret, token)
+
+    return jwt_obj.payload[claim]
+end
+
 return M

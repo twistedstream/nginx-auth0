@@ -15,7 +15,8 @@ image_exists=$(docker images | grep "proxy-base-image\s*$dockerfile_sha1") || tr
 
 if [ -z "$image_exists" ]; then
     echo -e "${blue}Building image${no_color}"
-    docker build -t="proxy-base-image:$dockerfile_sha1" --force-rm $proxy_base_dir
+    docker build -t="auth0/proxy-base-image:$dockerfile_sha1" --force-rm $proxy_base_dir
+    docker tag "auth0/proxy-base-image:$dockerfile_sha1" "auth0/proxy-base-image:latest"
 else
     echo -e "${blue}Base image already exists${no_color}"
 fi

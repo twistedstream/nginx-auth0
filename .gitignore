@@ -49,3 +49,7 @@ npm-debug.log
 *.lua.swp
 lib/
 nginx-jwt.tar.gz
+
+# Intellij
+.idea/
+*.iml

@@ -211,9 +211,9 @@ Besides being able to install Docker and run Docker directly in the host OS, the
 sudo ./build run
 ```
 
-#### Ubuntu on MacOS (via Vagrant)
+#### Vagrant
 
-If your host OS is Mac OS but you'd like to test that the build scripts run on Ubuntu, you can use the provided Vagrant scripts to spin up an Ubuntu VM that has all the necessary tools installed.
+If you'd like to test that the build scripts run on Ubuntu VM, you can use the provided Vagrant scripts to spin up an Ubuntu VM that has all the necessary tools installed.
 
 First, if you haven't already, install **Vagrant** either by [installing the package](http://www.vagrantup.com/downloads.html) or using [Homebrew](http://sourabhbajaj.com/mac-setup/Vagrant/README.html).
 
@@ -229,7 +229,12 @@ And then SSH into it:
 vagrant ssh
 ```
 
-Once in, you'll need to use git to clone this repo and `cd` into the project:
+If you're VM provider (ie Virtualbox) has guest additions installed, it will automatically mount the working directory to /vagrant. 
+
+Due to issues with security around synced folders and symlinks, most providers will explicitly prevent this so npm install will fail on tests. To get around this
+if this folder was already mounted there should be a copy in ~/nginx-jwt already copied.
+
+Otherwise you'll need to use git to clone this repo and `cd` into the project:
 
 ```bash
 git clone THIS_REPO_URL

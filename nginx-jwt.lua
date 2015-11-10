@@ -93,7 +93,7 @@ function M.auth(claim_specs)
             -- make sure claim spec is a supported type
             -- TODO: test
             if spec_action == nil then
-                ngx.log(ngx.STDERR, "Configuration error: claim_specs arg claim '" .. claim .. "' must be a string or a table")
+                ngx.log(ngx.STDERR, "Configuration error: claim_specs arg claim '" .. claim .. "' must be a string or a function")
                 ngx.exit(ngx.HTTP_INTERNAL_SERVER_ERROR)
             end
 

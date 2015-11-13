@@ -25,9 +25,17 @@ curl --silent --location https://deb.nodesource.com/setup_0.12 | sudo bash -
 apt-get install --yes nodejs
 
 # Install Docker
-curl -sSL https://get.docker.com/ubuntu | sh
+curl -sSL https://get.docker.com/ | sh
+
+usermod -aG docker vagrant
 
 # Vim settings:
 echo 'syntax on' > /home/vagrant/.vimrc
 
 touch /etc/vagrant-provisioned
+
+# If your VM provider auto-mounted the current directory under /vagrant, simply copy a copy to prevent npm symlink issues
+if [ -e "/vagrant/build" ];
+then
+  cp -R /vagrant nginx-jwt
+fi

@@ -265,7 +265,7 @@ describe('proxy', function () {
                             if (err) { done(err); }
 
                             expect(stderr).to.have.string(
-                                "Configuration error: claim_specs arg claim 'aud' must be a string or a table");
+                                "Configuration error: claim_specs arg claim 'aud' must be a string or a function");
 
                             done();
                         });

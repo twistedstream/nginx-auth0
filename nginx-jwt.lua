@@ -35,7 +35,10 @@ function M.auth(claim_specs)
 
     -- require Bearer token
     local _, _, token = string.find(auth_header, "Bearer%s+(.+)")
+    return M.auth_token(token, claim_specs)
+end
 
+function M.auth_token(token, claim_specs)
     if token == nil then
         ngx.log(ngx.WARN, "Missing token")
         ngx.exit(ngx.HTTP_UNAUTHORIZED)

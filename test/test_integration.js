@@ -78,6 +78,7 @@ describe('proxy', function () {
                 return request(url)
                     .get('/secure')
                     .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer')
                     .end();
             });
 
@@ -86,6 +87,7 @@ describe('proxy', function () {
                     .get('/secure')
                     .headers({'Authorization': 'Bearer not-a-valid-jwt'})
                     .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer error="invalid_token"')
                     .end();
             });
 
@@ -110,39 +112,56 @@ describe('proxy', function () {
             it("should return 401 when an authenticated user is missing a required claim", function () {
                 var token = jwt.sign(
                     // roles claim missing
-                    { sub: 'foo-user', aud: 'foo1:bar' },
+                    { sub: 'foo-user', aud: 'foo1:bar', scope: 'admin' },
                     secret);
 
                 return request(url)
                     .get('/secure/admin')
                     .headers({'Authorization': 'Bearer ' + token})
                     .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer')
                     .end();
             });
 
             it("should return 401 when a claim of an authenticated user doesn't pass a 'pattern' claim spec", function () {
                 var token = jwt.sign(
                     // aud claim has incorrect value
-                    { sub: 'foo-user', aud: 'foo1:bar', roles: ["sales", "marketing"] },
+                    { sub: 'foo-user', aud: 'foo1:bar', roles: ["sales", "marketing"], scope: 'admin' },
                     secret);
 
                 return request(url)
                     .get('/secure/admin')
                     .headers({'Authorization': 'Bearer ' + token})
                     .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer')
+                    .end();
+            });
+
+            it("should return 403 when a scope claim has incorrect value", function () {
+                var token = jwt.sign(
+                    // scope claim has incorrect value
+                    { sub: 'foo-user', aud: 'foo:bar', roles: ["sales", "marketing"], scope: 'user' },
+                    secret);
+
+                return request(url)
+                    .get('/secure/admin')
+                    .headers({'Authorization': 'Bearer ' + token})
+                    .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer error="insufficient_scope",scope=admin')
                     .end();
             });
 
             it("should return 401 when a claim of an authenticated user doesn't pass a 'function' claim spec", function () {
                 var token = jwt.sign(
                     // roles claim is missing 'marketing' role
-                    { sub: 'foo-user', aud: 'foo:bar', roles: ["sales"] },
+                    { sub: 'foo-user', aud: 'foo:bar', roles: ["sales"], scope: 'admin' },
                     secret);
 
                 return request(url)
                     .get('/secure/admin')
                     .headers({'Authorization': 'Bearer ' + token})
                     .expect(401)
+                    .expect('WWW-Authenticate', 'Bearer')
                     .end();
             });
 

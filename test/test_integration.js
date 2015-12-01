@@ -146,7 +146,7 @@ describe('proxy', function () {
                 return request(url)
                     .get('/secure/admin')
                     .headers({'Authorization': 'Bearer ' + token})
-                    .expect(401)
+                    .expect(403)
                     .expect('WWW-Authenticate', 'Bearer error="insufficient_scope",scope=admin')
                     .end();
             });

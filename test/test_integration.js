@@ -168,7 +168,7 @@ describe('proxy', function () {
             it("should return 200 when an authenticated user is also authorized by all claims", function () {
                 var token = jwt.sign(
                     // everything is good
-                    { sub: 'foo-user', aud: 'foo:bar', roles: ["sales", "marketing"] },
+                    { sub: 'foo-user', aud: 'foo:bar', roles: ["sales", "marketing"], scope: 'admin' },
                     secret);
 
                 return request(url)

@@ -28,6 +28,7 @@ function M.auth(claim_specs)
 
     if auth_header == nil then
         ngx.log(ngx.WARN, "No Authorization header")
+        ngx.header["WWW-Authenticate"] = 'Bearer'
         ngx.exit(ngx.HTTP_UNAUTHORIZED)
     end
 
@@ -38,6 +39,7 @@ function M.auth(claim_specs)
 
     if token == nil then
         ngx.log(ngx.WARN, "Missing token")
+        ngx.header["WWW-Authenticate"] = 'Bearer'
         ngx.exit(ngx.HTTP_UNAUTHORIZED)
     end
 
@@ -47,6 +49,7 @@ function M.auth(claim_specs)
     local jwt_obj = jwt:verify(secret, token, 0)
     if jwt_obj.verified == false then
         ngx.log(ngx.WARN, "Invalid token: ".. jwt_obj.reason)
+        ngx.header["WWW-Authenticate"] = 'Bearer error="invalid_token"'
         ngx.exit(ngx.HTTP_UNAUTHORIZED)
     end
 
@@ -63,6 +66,7 @@ function M.auth(claim_specs)
 
         -- process each claim
         local blocking_claim = ""
+        local blocking_spec = ""
         for claim, spec in pairs(claim_specs) do
             -- make sure token actually contains the claim
             local claim_value = jwt_obj.payload[claim]
@@ -100,12 +104,20 @@ function M.auth(claim_specs)
             -- make sure token claim value satisfies the claim spec
             if not spec_action(spec, claim_value) then
                 blocking_claim = claim
+                blocking_spec = spec
                 break
             end
         end
 
         if blocking_claim ~= "" then
             ngx.log(ngx.WARN, "User did not satisfy claim: ".. blocking_claim)
+            
+            -- https://tools.ietf.org/html/rfc6750#section-3.1
+            if blocking_claim == "scope" then
+                ngx.header["WWW-Authenticate"] = 'Bearer error="insufficient_scope",' .. blocking_claim .. '=' .. blocking_spec
+                ngx.exit(ngx.HTTP_FORBIDDEN)
+            end
+            ngx.header["WWW-Authenticate"] = 'Bearer'
             ngx.exit(ngx.HTTP_UNAUTHORIZED)
         end
     end

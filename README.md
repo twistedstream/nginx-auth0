@@ -2,6 +2,19 @@
 
 **nginx-jwt** is a [Lua](http://www.lua.org/) script for the [Nginx](http://nginx.org/) server (running the [HttpLuaModule](http://wiki.nginx.org/HttpLuaModule)) that will allow you to use Nginx as a reverse proxy in front of your existing set of HTTP services and secure them (authentication/authorization) using a trusted [JSON Web Token (JWT)](http://jwt.io/) in the `Authorization` request header, having to make little or no changes to the backing services themselves.
 
+## Contents
+
+- [Key Features](#key-features)
+- [Install](#install)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API Reference](#api-reference)
+- [Tests](#tests)
+- [Packaging](#packaging)
+- [Issue Reporting](#issue-reporting)
+- [Contributors](#contributors)
+- [License](#license)
+
 ## Key Features
 
 * Secure an existing HTTP service (ex: REST API) using Nginx reverse-proxy and this script
@@ -10,21 +23,12 @@
 
 ## Install
 
-It is recommended to use the latest [ngx_openresty bundle](http://openresty.org/) directly as this script (and its dependencies) depend on components that are installed by **openresty**.
+> **IMPORTANT**: **nginx-jwt** is a Lua script that is designed to run on Nginx servers that have the [HttpLuaModule](http://wiki.nginx.org/HttpLuaModule) installed. But ultimately its dependencies require components available in the [OpenResty](http://openresty.org/) distribution of Nginx. Therefore, it is recommended that you use **OpenResty** as your Nginx server, and these instructions make that assumption.
 
 Install steps:
 
-1. Build the Lua script dependencies using this command:  
-
-    ```bash
-    ./build deps
-    ```
-
-    This will create a local `lib/` directory that contains all Lua scripts that the **nginx-jwt** script depends on.
-
-    **NOTE**: This command should work on Mac OS as well as Ubuntu.
-
-1. Deploy the [`nginx-jwt.lua`](nginx-jwt.lua) script as well as the local `lib/` directory (generated in the previous step) to one directory on your Nginx server.
+1. Download the latest archive package from [releases](https://github.com/auth0/nginx-jwt/releases).
+1. Extract the archive and deploy its contents to a directory on your Nginx server.
 1. Specify this directory's path using ngx_lua's [lua_package_path](https://github.com/openresty/lua-nginx-module#lua_package_path) directive:  
     ```lua
     # nginx.conf:
@@ -34,6 +38,11 @@ Install steps:
         ...
     }
     ```
+
+## Configuration
+
+> At the moment, `nginx-jwt` only supports symmetric keys (`alg` = `hs256`), which is why you need to configure your server with the shared JWT secret below.
+
 1. Export the `JWT_SECRET` environment variable on the Nginx host, setting it equal to your JWT secret.  Then expose it to Nginx server:  
     ```lua
     # nginx.conf:
@@ -182,11 +191,56 @@ The best way to develop and test the **nginx-jwt** script is to run it in a virt
 
 This repo contains everything you need to do just that.  It's set up to run Nginx as well as a simple backend server in individual [Docker](http://www.docker.com) containers.
 
-### Prerequisites (Mac OS)
+### Prerequisites
 
-1. [boot2docker](http://boot2docker.io/)  
-    **NOTE**: if you want to install `boot2docker` using [Homebrew](http://brew.sh/), checkout [these instructions](http://blog.javabien.net/2014/03/03/setup-docker-on-osx-the-no-brainer-way/)
+#### Mac OS
+
+1. [Docker Toolbox](https://www.docker.com/toolbox)
 1. [Node.js](https://nodejs.org/)
+
+> **IMPORTANT**: The test scripts expect your **Docker Toolbox** `docker-machine` VM name to be `default`
+
+#### Ubuntu
+
+1. [Docker](https://docs.docker.com/installation/ubuntulinux/)
+1. [Node.js](https://nodejs.org/)
+
+Besides being able to install Docker and run Docker directly in the host OS, the other different between Ubuntu (and more specifically Linux) and Mac OS is that all Docker commands need to be called using `sudo`. In the examples that follow, a helper script called `build` is used to perform all Docker commands and should therefore be prefixed with `sudo`, like this:
+
+```bash
+sudo ./build run
+```
+
+#### Ubuntu on MacOS (via Vagrant)
+
+If your host OS is Mac OS but you'd like to test that the build scripts run on Ubuntu, you can use the provided Vagrant scripts to spin up an Ubuntu VM that has all the necessary tools installed.
+
+First, if you haven't already, install **Vagrant** either by [installing the package](http://www.vagrantup.com/downloads.html) or using [Homebrew](http://sourabhbajaj.com/mac-setup/Vagrant/README.html).
+
+Then in the repo directory, start the VM:
+
+```bash
+vagrant up
+```
+
+And then SSH into it:
+
+```bash
+vagrant ssh
+```
+
+Once in, you'll need to use git to clone this repo and `cd` into the project:
+
+```bash
+git clone THIS_REPO_URL
+cd nginx-jwt
+```
+
+All other tools should be installed. And like with the [Ubuntu](#ubuntu) host OS, you'll need to prefix all calls to the `build` script with `sudo`, like this:
+
+```bash
+sudo ./build run
+```
 
 ### Build and run the default containers
 
@@ -196,7 +250,7 @@ If you just want to see the **nginx-jwt** script in action, you can run the [`ba
 ./build run
 ```
 
-**NOTE**: On the first run, the above script may take several minutes to download all the base Docker images, so go grab a fresh cup of coffee.  Successive runs are much faster.
+> **NOTE**: On the first run, the above script may take several minutes to download and build all the base Docker images, so go grab a fresh cup of coffee.  Successive runs are much faster.
 
 You can then run cURL commands against the endpoints exposed by the backend through Nginx.  The root URL of the proxy is reported back by the script when it is finished.  It will look something like this:
 
@@ -206,7 +260,7 @@ Proxy:
 curl http://192.168.59.103
 ```
 
-Notice the proxy container (which is running in the `boot2docker` VM) is listening on port 80.  The actual backend container is not directly accessible via the VM.  All calls are configured to reverse-proxy through the Nginx host and the connection between the two is done via [docker container linking](https://docs.docker.com/userguide/dockerlinks/).
+Notice the proxy container (which is running in the Docker Machine VM) is listening on port 80.  The actual backend container is not directly accessible via the VM.  All calls are configured to reverse-proxy through the Nginx host and the connection between the two is done via [docker container linking](https://docs.docker.com/userguide/dockerlinks/).
 
 If you issue the above cURL command, you'll hit the [proxy's root (`/`) endpoint](hosts/proxy/default/nginx/conf/nginx.conf#L14), which simply reverse-proxies to the [non-secure backend endpoint](hosts/backend/server.js#L7), which doesn't require any authentication:
 
@@ -305,6 +359,53 @@ If you need to simply stop/delete all running Docker containers and remove their
 ```bash
 ./build clean
 ```
+
+### Updating dependencies
+
+It's always nice to keep dependencies up to date. This library (and the tools used to test it) has three sources of dependencies that should be maintained: Lua dependencies, test script Node.js dependencies, and updates to the proxy base Docker image.
+
+#### Lua dependencies
+
+These are the Lua scripts that [this library](nginx-jwt.lua) uses.  They are maintained in the [`build_deps.sh`](scripts/build_deps.sh) bash script.
+
+Since these dependencies don't have any built-in versioning (like npm), we download a specific GitHub commit instead. We also check that a previously downloaded script is current by examining its SHA-1 digest hash. All this is done via the included  `load_dependency` bash function.
+
+If a Lua dependency needs to be updated, find its associated `load_dependency` function call and update its GitHub `commit` and `sha1` parameter values. You can generate the required SHA-1 digest of a new script file using this command:
+
+```bash
+openssh sha1 NEW_SCRIPT
+```
+
+To add a new dependency simply add a new `load_dependency` command to the script.
+
+#### Test script Node.js dependencies
+
+All Node.js dependencies (npm packages) for tests are maintained in this [`package.json`](test/package.json) file and should be updated as needed using the `npm` command.
+
+#### Proxy base Docker image
+
+The proxy base Docker image may need to be updated periodically, usually to just rev the version of OpenResty that its using. This can be done by modifying the image's [`Dockerfile`](hosts/proxy/Dockerfile). Any change to this file will automatically result in new image builds when the `build` script is run.
+
+## Packaging
+
+When a new version of the script needs to be released, the following should be done:
+
+> **NOTE**: These steps can only performed by GitHub users with commit access to the project.
+
+1. Increment the [Semver](http://semver.org/) version in the [`version.txt`](version.txt) file as needed.
+1. Create a new git tag with the same version value (prefiexed with `v`):
+
+  ```bash
+  git tag v$(cat version.txt)
+  ```
+
+1. Push the tag to GitHub.
+1. Create a new GitHub release in [releases](https://github.com/auth0/nginx-jwt/releases) that's associated with the above tag.
+1. Run the following command to create a release package archive and then upload it to the release created above:  
+
+  ```bash
+  ./build package
+  ```
 
 ## Issue Reporting
 

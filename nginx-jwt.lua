@@ -20,9 +20,7 @@ if os.getenv("JWT_SECRET_IS_BASE64_ENCODED") == 'true' then
     secret = basexx.from_base64(secret)
 end
 
-local M = {}
-
-function M.auth(claim_specs)
+function getJwt()
     -- require Authorization request header
     local auth_header = ngx.var.http_Authorization
 
@@ -35,6 +33,13 @@ function M.auth(claim_specs)
 
     -- require Bearer token
     local _, _, token = string.find(auth_header, "Bearer%s+(.+)")
+    return token
+end
+
+local M = {}
+
+function M.auth(claim_specs)
+    local token = getJwt()
 
     if token == nil then
         ngx.log(ngx.WARN, "Missing token")
@@ -119,6 +124,12 @@ function M.table_contains(table, item)
         if value == item then return true end
     end
     return false
+end
+
+function M.get_claim(claim)
+    local jwt_obj = jwt:verify(secret, getJwt())
+
+    return jwt_obj.payload[claim]
 end
 
 return M

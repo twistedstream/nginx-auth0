@@ -106,6 +106,32 @@ describe('proxy', function () {
             });
         });
 
+        describe("GET /secure/secretUser", function() {
+            it("should return a 401 for a a user with the wrong customerId value", function() {
+                var token = jwt.sign(
+                    { customerId: 'customer2' },
+                    secret);
+
+                return request(url)
+                    .get('/secure/secretUser')
+                    .headers({'Authorization': 'Bearer ' + token})
+                    .expect(401)
+                    .end();
+            });
+
+            it("should return a 200 for a user with the correct customerId value", function() {
+                var token = jwt.sign(
+                    { customerId: 'customer1' },
+                    secret);
+
+                return request(url)
+                    .get('/secure/secretUser')
+                    .headers({'Authorization': 'Bearer ' + token})
+                    .expect(200)
+                    .end();
+            });
+        });
+
         describe("GET /secure/admin", function () {
             it("should return 401 when an authenticated user is missing a required claim", function () {
                 var token = jwt.sign(

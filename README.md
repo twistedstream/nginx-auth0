@@ -155,7 +155,7 @@ server {
             local jwt = require("nginx-jwt")
             jwt.auth({
                 aud="^foo:",
-                role=function (val) return jwt.table_contains(val, "marketing") end
+                roles=function (val) return jwt.table_contains(val, "marketing") end
             })
         ';
 

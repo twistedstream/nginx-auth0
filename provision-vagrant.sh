@@ -25,7 +25,7 @@ curl --silent --location https://deb.nodesource.com/setup_0.12 | sudo bash -
 apt-get install --yes nodejs
 
 # Install Docker
-curl -sSL https://get.docker.com/ubuntu | sh
+curl -sSL https://get.docker.com/ | sh
 
 # Vim settings:
 echo 'syntax on' > /home/vagrant/.vimrc

@@ -50,7 +50,7 @@ function M.auth(claim_specs)
         ngx.exit(ngx.HTTP_UNAUTHORIZED)
     end
 
-    ngx.log(ngx.INFO, "JWT: " .. cjson.encode(jwt_obj))
+    ngx.log(ngx.DEBUG, "JWT: " .. cjson.encode(jwt_obj))
 
     -- optionally require specific claims
     if claim_specs ~= nil then

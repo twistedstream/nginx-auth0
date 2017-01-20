@@ -20,6 +20,7 @@
 * Secure an existing HTTP service (ex: REST API) using Nginx reverse-proxy and this script
 * Authenticate an HTTP request with the verified identity contained with in a JWT
 * Optionally, authorize the same request using helper functions for asserting required JWT claims
+* Optionally, specify if the token is in the request param (bearer param) or in a cookie (bearer cookie).
 
 ## Install
 

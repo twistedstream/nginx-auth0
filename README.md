@@ -49,12 +49,22 @@ Install steps:
 
     env JWT_SECRET;
     ```
-1. If your JWT secret is Base64 (URL-safe) encoded, export the `JWT_SECRET_IS_BASE64_ENCODED` environment variable on the Nginx host, setting it equal to `true`.  Then expose it to Nginx server:  
+2. If your JWT secret is Base64 (URL-safe) encoded, export the `JWT_SECRET_IS_BASE64_ENCODED` environment variable on the Nginx host, setting it equal to `true`.  Then expose it to Nginx server:  
     ```lua
     # nginx.conf:
 
     env JWT_SECRET_IS_BASE64_ENCODED;
     ```
+
+3. If you want specify where this script should looking for the token, export the `NGINX_JWT_TOKEN_SITE` environment variable on the Nginx host, setting it equal to `HEADER`, `COOKIE` , `REQUEST`.  Then expose it to Nginx server:  
+    ```lua
+    # nginx.conf:
+
+    env NGINX_JWT_TOKEN_SITE;
+    ```
+ In case that you choose COOKIE or HEADER, this script try to found a "bearer" cookie or request parameter.   
+
+
 
 ## Usage
 

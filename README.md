@@ -41,7 +41,7 @@ Install steps:
 
 ## Configuration
 
-> At the moment, `nginx-jwt` only supports symmetric keys (`alg` = `hs256`), which is why you need to configure your server with the shared JWT secret below.
+> `JWT_SECRET` can also be a RS256 public key for use with Auth0.
 
 1. Export the `JWT_SECRET` environment variable on the Nginx host, setting it equal to your JWT secret.  Then expose it to Nginx server:  
     ```lua
